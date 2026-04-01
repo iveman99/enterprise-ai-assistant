@@ -1,42 +1,39 @@
 # backend/main.py
-# ─────────────────────────────────────────────
-# This is the entry point of our entire backend.
-# Think of it as the front door of the building.
-# All API routes will be registered here.
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────
+# Entry point of the entire backend.
+# Creates the FastAPI app and registers all routes.
+# ─────────────────────────────────────────────────────────
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from api.routes import router
 from core.config import settings
 
-# Create the FastAPI app
+# Create the app
 app = FastAPI(
-    title=settings.app_name,
-    version=settings.app_version,
-    description="AI-powered knowledge assistant for enterprise documents"
+    title=       settings.app_name,
+    version=     settings.app_version,
+    description= "AI-powered knowledge assistant for enterprise documents"
 )
 
 # Allow React frontend to talk to this backend
-# (CORS = Cross-Origin Resource Sharing)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React runs here
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=  ["http://localhost:3000", "*"],
+    allow_methods=  ["*"],
+    allow_headers=  ["*"],
 )
 
-# Health check — confirms the server is alive
-@app.get("/health")
-async def health_check():
-    return {
-        "status": "healthy",
-        "app": settings.app_name,
-        "version": settings.app_version,
-        "environment": settings.environment
-    }
+# Register all routes under /api prefix
+# So /query becomes /api/query
+# So /health becomes /api/health
+app.include_router(router, prefix="/api")
 
 # Root
 @app.get("/")
 async def root():
-    return {"message": f"Welcome to {settings.app_name} API"}
+    return {
+        "message": f"Welcome to {settings.app_name}",
+        "docs":    "Visit /docs for API documentation",
+        "health":  "Visit /api/health to check status"
+    }
