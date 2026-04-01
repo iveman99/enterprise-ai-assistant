@@ -1,0 +1,63 @@
+/* frontend/src/index.css
+   Global styles — fonts, reset, CSS variables
+   We use Inter for body and a clean corporate palette */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Brand colors */
+  --primary:        #2563eb;
+  --primary-hover:  #1d4ed8;
+  --primary-light:  #eff6ff;
+
+  /* Neutrals */
+  --white:          #ffffff;
+  --gray-50:        #f8fafc;
+  --gray-100:       #f1f5f9;
+  --gray-200:       #e2e8f0;
+  --gray-300:       #cbd5e1;
+  --gray-400:       #94a3b8;
+  --gray-500:       #64748b;
+  --gray-600:       #475569;
+  --gray-700:       #334155;
+  --gray-800:       #1e293b;
+  --gray-900:       #0f172a;
+
+  /* Semantic */
+  --success:        #10b981;
+  --success-light:  #ecfdf5;
+  --warning:        #f59e0b;
+  --warning-light:  #fffbeb;
+
+  /* Layout */
+  --sidebar-width:  280px;
+  --header-height:  64px;
+  --radius-sm:      6px;
+  --radius-md:      10px;
+  --radius-lg:      16px;
+
+  /* Shadows */
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:  0 4px 6px rgba(0,0,0,0.07);
+  --shadow-lg:  0 10px 15px rgba(0,0,0,0.1);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-800);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar        { width: 6px; }
+::-webkit-scrollbar-track  { background: var(--gray-100); }
+::-webkit-scrollbar-thumb  { background: var(--gray-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
