@@ -123,26 +123,53 @@ async def get_roles():
 @router.post("/query", response_model=QueryResponse)
 async def query_documents(request: QueryRequest):
     """
-    The main endpoint — takes a question and returns an answer.
-
-    Frontend sends:
-        POST /query
-        {
-            "question": "What is the leave policy?",
-            "role": "HR",
-            "n_results": 5
-        }
-
-    Returns:
-        {
-            "answer": "According to Leave Policy Template...",
-            "sources": [...],
-            "role": "HR",
-            "chunks_used": 5,
-            "question": "What is the leave policy?"
-        }
+    Main endpoint — now supports conversation history
+    for follow-up questions.
     """
 
+    if not request.question.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Question cannot be empty"
+        )
+
+    if request.role not in ROLE_ACCESS_MAP and \
+       request.role not in settings.departments:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown role: {request.role}"
+        )
+
+    try:
+        result = rag_engine.answer(
+            question=             request.question,
+            role=                 request.role,
+            n_chunks=             request.n_results,
+            conversation_history= request.conversation_history
+        )
+
+        sources = [
+            SourceDocument(
+                filename=   s["filename"],
+                department= s["department"],
+                score=      s["score"]
+            )
+            for s in result["sources"]
+        ]
+
+        return QueryResponse(
+            answer=      result["answer"],
+            sources=     sources,
+            role=        result["role"],
+            chunks_used= result["chunks_used"],
+            question=    result["question"]
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generating answer: {str(e)}"
+        )
     # Validate the question is not empty
     if not request.question.strip():
         raise HTTPException(

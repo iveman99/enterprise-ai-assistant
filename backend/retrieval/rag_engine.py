@@ -1,17 +1,10 @@
 # backend/retrieval/rag_engine.py
 # ─────────────────────────────────────────────────────────
-# This is the brain of the system.
+# RAG Engine with conversation history support.
 #
-# It connects retrieval (Step 3) with Groq LLM to produce
-# grounded answers — answers based on actual company docs,
-# not the AI's general knowledge.
-#
-# Flow:
-#   question + role
-#       → retrieve relevant chunks (DocumentRetriever)
-#       → build a prompt with those chunks as context
-#       → send to Groq
-#       → return answer + source citations
+# Now accepts the full conversation history and passes
+# it to Groq so the AI understands context from
+# previous messages in the same session.
 # ─────────────────────────────────────────────────────────
 
 from groq import Groq
@@ -19,88 +12,80 @@ from retrieval.retriever import DocumentRetriever
 from core.config import settings
 
 
-# ── System prompt ────────────────────────────────────────
-# This tells Groq exactly how to behave.
-# It is sent with every single request.
 SYSTEM_PROMPT = """You are an Enterprise AI Knowledge Assistant.
-Your job is to answer employee questions using ONLY the company 
+Your job is to answer employee questions using ONLY the company
 documents provided to you as context.
 
 Rules you must follow:
 1. Only use information from the provided context
 2. Always mention which document your answer comes from
-3. If the answer is not in the context, say clearly:
+3. If the answer is not in the context say clearly:
    "I could not find this information in your accessible documents."
 4. Be professional, clear and concise
 5. Never make up information or use outside knowledge
-6. Format your answer in clean readable paragraphs"""
+6. You have access to the conversation history —
+   use it to understand follow-up questions
+7. Format your answer in clean readable paragraphs"""
 
 
 class RAGEngine:
     """
-    Retrieval Augmented Generation engine.
+    RAG Engine with conversation history support.
 
-    Takes a question + role, retrieves relevant chunks,
-    builds a prompt, sends to Groq, returns the answer
-    with source citations.
+    Passes the full conversation history to Groq
+    so follow-up questions are understood correctly.
     """
 
     def __init__(self):
-        # Initialize Groq client
-        self.groq_client = Groq(
-            api_key=settings.groq_api_key
-        )
-
-        # Initialize retriever (connects to ChromaDB)
-        self.retriever = DocumentRetriever()
-
-        # Groq model — llama3 is fast, free, and excellent
-        self.model = "llama-3.1-8b-instant"
+        self.groq_client = Groq(api_key=settings.groq_api_key)
+        self.retriever   = DocumentRetriever()
+        self.model       = "llama-3.1-8b-instant"
 
         print("✅ RAG Engine ready")
-        print(f"   LLM     : {self.model} via Groq")
+        print(f"   LLM      : {self.model} via Groq")
         print(f"   Retriever: ChromaDB + sentence-transformers")
 
 
     def answer(
         self,
-        question: str,
-        role: str,
-        n_chunks: int = 5
+        question:             str,
+        role:                 str,
+        n_chunks:             int  = 5,
+        conversation_history: list = []
     ) -> dict:
         """
-        Main method — takes a question and returns an answer.
+        Answers a question using retrieved context +
+        full conversation history for follow-up support.
 
         Parameters:
-            question → user's question in plain English
-            role     → user's department role (e.g. "HR", "Finance")
-            n_chunks → how many document chunks to use as context
-
-        Returns a dict with:
-            answer      → the AI generated answer
-            sources     → list of documents used
-            role        → the role used for filtering
-            chunks_used → number of chunks retrieved
-            question    → the original question
+            question             → current user question
+            role                 → user's department role
+            n_chunks             → chunks to retrieve
+            conversation_history → list of previous messages
+                                   [{"role": "user", "content": "..."},
+                                    {"role": "assistant", "content": "..."}]
         """
 
         print(f"\n{'='*55}")
         print(f"❓ Question : {question}")
         print(f"👤 Role     : {role}")
+        print(f"💬 History  : {len(conversation_history)} messages")
         print(f"{'='*55}")
 
         # ── STEP 1: Retrieve relevant chunks ─────────────
+        # We search using the current question
+        # History gives context but retrieval uses
+        # the current question for best results
         chunks = self.retriever.search_by_role(
             query=question,
             role=role,
             n_results=n_chunks
         )
 
-        # If no chunks found — return gracefully
         if not chunks:
             return {
-                "answer":      "I could not find any relevant information "
-                               "in your accessible documents.",
+                "answer":      "I could not find any relevant "
+                               "information in your accessible documents.",
                 "sources":     [],
                 "role":        role,
                 "chunks_used": 0,
@@ -108,23 +93,37 @@ class RAGEngine:
             }
 
         # ── STEP 2: Build context from chunks ────────────
-        # We combine all retrieved chunks into one context block
-        # Each chunk is labeled with its source document
         context_parts = []
-
         for i, chunk in enumerate(chunks, 1):
             context_parts.append(
                 f"[Source {i}: {chunk['filename']} "
                 f"| Department: {chunk['department']}]\n"
                 f"{chunk['content']}"
             )
-
         context = "\n\n".join(context_parts)
 
-        # ── STEP 3: Build the full prompt ─────────────────
-        # We give Groq the context + the question
-        # It must answer using ONLY the context
-        user_prompt = f"""Here are relevant excerpts from company documents:
+        # ── STEP 3: Build messages for Groq ──────────────
+        # This is the key part — we build the full message list:
+        # [system prompt, ...history..., context + current question]
+        #
+        # Groq reads all messages in order — so it sees the full
+        # conversation before answering the current question
+
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT}
+        ]
+
+        # Add conversation history (previous messages)
+        # Limit to last 10 messages to avoid token limits
+        recent_history = conversation_history[-10:]
+        for msg in recent_history:
+            messages.append({
+                "role":    msg.role if hasattr(msg, 'role') else msg["role"],
+                "content": msg.content if hasattr(msg, 'content') else msg["content"]
+            })
+
+        # Add current question with retrieved context
+        current_message = f"""Here are relevant excerpts from company documents:
 
 {context}
 
@@ -133,28 +132,29 @@ class RAGEngine:
 Based ONLY on the above documents, please answer this question:
 {question}
 
-Remember to mention which document(s) your answer comes from."""
+Remember to mention which document(s) your answer comes from.
+Use the conversation history above to understand any follow-up context."""
+
+        messages.append({
+            "role":    "user",
+            "content": current_message
+        })
 
         # ── STEP 4: Send to Groq ──────────────────────────
-        print(f"\n🤖 Sending to Groq ({self.model})...")
+        print(f"\n🤖 Sending to Groq with {len(messages)} messages...")
 
         response = self.groq_client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user",   "content": user_prompt}
-            ],
-            temperature=0.1,  # low = more factual, less creative
-            max_tokens=1024
+            model=      self.model,
+            messages=   messages,
+            temperature=0.1,
+            max_tokens= 1024
         )
 
         answer_text = response.choices[0].message.content
 
-        # ── STEP 5: Build source citations ────────────────
-        # Deduplicate sources — same file might appear multiple times
-        seen = set()
+        # ── STEP 5: Build citations ───────────────────────
+        seen    = set()
         sources = []
-
         for chunk in chunks:
             key = f"{chunk['department']}::{chunk['filename']}"
             if key not in seen:
@@ -165,9 +165,8 @@ Remember to mention which document(s) your answer comes from."""
                     "score":      chunk["score"]
                 })
 
-        # ── STEP 6: Return everything ─────────────────────
         print(f"\n✅ Answer generated")
-        print(f"   Sources used: {[s['filename'] for s in sources]}")
+        print(f"   Sources: {[s['filename'] for s in sources]}")
 
         return {
             "answer":      answer_text,

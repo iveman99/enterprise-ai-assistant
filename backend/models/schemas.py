@@ -1,63 +1,52 @@
 # backend/models/schemas.py
-# ─────────────────────────────────────────────────────────
-# These are Pydantic models — they define the exact shape
-# of data coming into and going out of our API.
-#
-# WHY THIS MATTERS:
-# - FastAPI automatically validates incoming data
-# - If frontend sends wrong data, it gets a clear error
-# - Auto-generates API documentation for free
-# - Makes the code self-documenting
-# ─────────────────────────────────────────────────────────
 
 from pydantic import BaseModel
+
+
+class ConversationMessage(BaseModel):
+    """
+    A single message in the conversation history.
+
+    role    → "user" or "assistant"
+    content → the actual message text
+    """
+    role:    str
+    content: str
 
 
 class QueryRequest(BaseModel):
     """
     What the frontend sends when asking a question.
 
+    Now includes conversation_history so the AI
+    remembers previous messages in the same session.
+
     Example JSON:
     {
-        "question": "What is the leave policy?",
+        "question": "How many days do I get?",
         "role": "HR",
-        "n_results": 5
+        "n_results": 5,
+        "conversation_history": [
+            {"role": "user", "content": "What is the leave policy?"},
+            {"role": "assistant", "content": "The leave policy covers..."}
+        ]
     }
     """
-    question:  str        # the user's question
-    role:      str        # user's department role
-    n_results: int = 5    # how many chunks to retrieve (default 5)
+    question:             str
+    role:                 str
+    n_results:            int = 5
+    conversation_history: list[ConversationMessage] = []
 
 
 class SourceDocument(BaseModel):
-    """
-    A single source document cited in an answer.
-
-    Example:
-    {
-        "filename": "Leave Policy Template.pdf",
-        "department": "HR",
-        "score": 0.733
-    }
-    """
+    """A single source document cited in an answer."""
     filename:   str
     department: str
     score:      float
 
 
 class QueryResponse(BaseModel):
-    """
-    What the API sends back after answering a question.
-
-    Example JSON:
-    {
-        "answer": "According to the Leave Policy...",
-        "sources": [...],
-        "role": "HR",
-        "chunks_used": 5,
-        "question": "What is the leave policy?"
-    }
-    """
+    """What the API sends back after answering a question."""
     answer:      str
     sources:     list[SourceDocument]
     role:        str
@@ -66,10 +55,7 @@ class QueryResponse(BaseModel):
 
 
 class StatsResponse(BaseModel):
-    """
-    Response for the /stats endpoint.
-    Shows what's loaded in the system.
-    """
+    """Response for the /stats endpoint."""
     total_chunks:    int
     collection_name: str
     db_path:         str
