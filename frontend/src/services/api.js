@@ -10,7 +10,10 @@ const BASE_URL = 'https://quintin-jointured-kale.ngrok-free.dev/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
-  headers: { 'Content-Type': 'application/json' }
+  headers: {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true'   // ✅ FIX ADDED
+  }
 });
 
 
@@ -52,10 +55,7 @@ export const checkHealth = async () => {
 };
 
 
-// ── STREAMING FUNCTION (NEW) ─────────────────────────────
-// Stream an answer token by token
-// onToken  → called with each word/token
-// onDone   → called at the end with sources
+// ── STREAMING FUNCTION (UPDATED WITH NGROK FIX) ───────────
 export const streamQuery = async (
   question,
   role,
@@ -65,7 +65,10 @@ export const streamQuery = async (
 ) => {
   const response = await fetch(`${BASE_URL}/stream`, {
     method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type':               'application/json',
+      'ngrok-skip-browser-warning': 'true'   // ✅ FIX ADDED
+    },
     body: JSON.stringify({
       question,
       role,
@@ -87,13 +90,9 @@ export const streamQuery = async (
     const { done, value } = await reader.read();
     if (done) break;
 
-    // Decode chunk and append to buffer
     buffer += decoder.decode(value, { stream: true });
 
-    // Split into lines
     const lines = buffer.split('\n');
-
-    // Keep last incomplete line in buffer
     buffer = lines.pop();
 
     for (const line of lines) {
