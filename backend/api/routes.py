@@ -1,5 +1,6 @@
 # backend/api/routes.py
-
+from fastapi.responses import FileResponse
+from pathlib import Path
 from fastapi.responses import StreamingResponse
 import json
 from fastapi import APIRouter, HTTPException
@@ -29,6 +30,45 @@ async def health_check():
         "status":  "healthy",
         "message": "Enterprise AI Knowledge Assistant is running"
     }
+
+
+# ── GET /download/{department}/{filename} ─────────────────
+@router.get("/download/{department}/{filename}")
+async def download_document(department: str, filename: str):
+    """
+    Serves a PDF file for download.
+    Validates department and filename before serving.
+    """
+
+    # Prevent path traversal (important for interviews 🔥)
+    if ".." in filename or "/" in filename:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid filename"
+        )
+
+    # Build file path
+    file_path = Path(settings.documents_path) / department / filename
+
+    # Check if file exists
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Document not found: {filename}"
+        )
+
+    # Only allow PDFs
+    if not filename.endswith(".pdf"):
+        raise HTTPException(
+            status_code=400,
+            detail="Only PDF files can be downloaded"
+        )
+
+    return FileResponse(
+        path=str(file_path),
+        filename=filename,
+        media_type="application/pdf"
+    )
 
 
 # ── GET /stats ────────────────────────────────────────────
@@ -146,7 +186,6 @@ async def stream_answer(request: QueryRequest):
 
     def generate():
         try:
-            # Step 1: Retrieve chunks
             chunks = rag_engine.retriever.search_by_role(
                 query=request.question,
                 role=request.role,
@@ -158,13 +197,11 @@ async def stream_answer(request: QueryRequest):
                 yield f"data: {json.dumps({'done': True, 'sources': []})}\n\n"
                 return
 
-            # Step 2: Build context
             context = "\n\n".join([
                 f"[Source {i}: {c['filename']} | {c['department']}]\n{c['content']}"
                 for i, c in enumerate(chunks, 1)
             ])
 
-            # Step 3: Build messages
             messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
             for msg in request.conversation_history[-10:]:
@@ -178,7 +215,6 @@ async def stream_answer(request: QueryRequest):
                 "content": f"{context}\n\nQuestion: {request.question}"
             })
 
-            # Step 4: Stream response
             stream = rag_engine.groq_client.chat.completions.create(
                 model=rag_engine.model,
                 messages=messages,
@@ -192,7 +228,6 @@ async def stream_answer(request: QueryRequest):
                 if token:
                     yield f"data: {json.dumps({'token': token, 'done': False})}\n\n"
 
-            # Step 5: Send sources
             seen = set()
             sources = []
             for c in chunks:
