@@ -11,17 +11,18 @@ from core.config import settings
 
 # Create the app
 app = FastAPI(
-    title=       settings.app_name,
-    version=     settings.app_version,
-    description= "AI-powered knowledge assistant for enterprise documents"
+    title=settings.app_name,
+    version=settings.app_version,
+    description="AI-powered knowledge assistant for enterprise documents"
 )
 
-# Allow React frontend to talk to this backend
+# ✅ UPDATED CORS (important for ngrok + Vercel)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=  ["http://localhost:3000", "*"],
-    allow_methods=  ["*"],
-    allow_headers=  ["*"],
+    allow_origins=["*"],           # allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],           # allow all HTTP methods
+    allow_headers=["*"],           # allow all headers
 )
 
 # Register all routes under /api prefix
@@ -29,11 +30,11 @@ app.add_middleware(
 # So /health becomes /api/health
 app.include_router(router, prefix="/api")
 
-# Root
+# Root endpoint
 @app.get("/")
 async def root():
     return {
         "message": f"Welcome to {settings.app_name}",
-        "docs":    "Visit /docs for API documentation",
-        "health":  "Visit /api/health to check status"
+        "docs": "Visit /docs for API documentation",
+        "health": "Visit /api/health to check status"
     }
