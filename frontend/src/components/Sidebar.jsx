@@ -3,9 +3,9 @@
 
 import { FileText, Database, MessageSquare, Clock } from 'lucide-react';
 
-export default function Sidebar({ stats, history, onHistoryClick }) {
+export default function Sidebar({ stats, history, onHistoryClick, isOpen, onOpenModal }) {
   return (
-    <aside className="sidebar-container" style={{
+    <aside className={`sidebar-container ${isOpen ? 'open' : ''}`} style={{
       width:      'var(--sidebar-width)',
       background: 'var(--white)',
       borderRight:'1px solid var(--gray-200)',
@@ -14,6 +14,29 @@ export default function Sidebar({ stats, history, onHistoryClick }) {
       padding:    '20px 0',
       flexShrink: 0
     }}>
+
+      {/* CEO Navigation (Mobile friendly access to Modals) */}
+      <div className="sidebar-nav-buttons" style={{ padding: '0 16px', marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button
+            onClick={() => onOpenModal('current')}
+            style={{
+              background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)',
+              padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', width: '100%'
+            }}
+          >
+            System Overview
+          </button>
+          <button
+            onClick={() => onOpenModal('future')}
+            style={{
+              background: 'var(--primary)', border: 'none', color: 'white',
+              padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', width: '100%'
+            }}
+          >
+            Future Vision
+          </button>
+          <div style={{ height: '1px', background: 'var(--gray-200)', marginTop: 12, marginBottom: 0 }} />
+      </div>
 
       {/* Conversation History */}
       <div style={{ padding: '20px 16px 0' }}>

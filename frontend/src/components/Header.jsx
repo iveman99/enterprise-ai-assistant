@@ -1,7 +1,7 @@
 // frontend/src/components/Header.jsx
 // Top bar — logo, title, role switcher
 
-import { Building2, ChevronDown } from 'lucide-react';
+import { Building2, ChevronDown, Menu } from 'lucide-react';
 import { useState } from 'react';
 
 const ROLES = [
@@ -13,9 +13,8 @@ const ROLES = [
   { value: 'Executive',        label: 'Executive (All)',   color: '#0f172a' },
 ];
 
-export default function Header({ currentRole, onRoleChange }) {
+export default function Header({ currentRole, onRoleChange, onToggleNav, onOpenModal }) {
   const [open, setOpen] = useState(false);
-  const [modal, setModal] = useState(null);
   const selected = ROLES.find(r => r.value === currentRole) || ROLES[0];
 
   return (
@@ -37,6 +36,13 @@ export default function Header({ currentRole, onRoleChange }) {
 
       {/* Logo + Title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button 
+          className="hamburger-button"
+          onClick={onToggleNav}
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+        >
+          <Menu size={24} color="var(--gray-700)" />
+        </button>
         <div style={{
           width:          38,
           height:         38,
@@ -73,7 +79,7 @@ export default function Header({ currentRole, onRoleChange }) {
         {/* CEO Navigation Buttons */}
         <div className="header-nav-buttons" style={{ display: 'flex', gap: 8 }}>
           <button
-            onClick={() => setModal('current')}
+            onClick={() => onOpenModal('current')}
             style={{
               background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)',
               padding: '6px 12px', borderRadius: 'var(--radius-md)', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
@@ -82,7 +88,7 @@ export default function Header({ currentRole, onRoleChange }) {
             System Overview
           </button>
           <button
-            onClick={() => setModal('future')}
+            onClick={() => onOpenModal('future')}
             style={{
               background: 'var(--primary)', border: 'none', color: 'white',
               padding: '6px 12px', borderRadius: 'var(--radius-md)', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
@@ -178,57 +184,6 @@ export default function Header({ currentRole, onRoleChange }) {
         )}
         </div>
       </div>
-
-      {/* Modal Overlay */}
-      {modal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.6)', zIndex: 9999,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-          backdropFilter: 'blur(4px)'
-        }}>
-          <div style={{
-            background: 'white', width: '100%', maxWidth: 650, borderRadius: 'var(--radius-lg)',
-            padding: '32px 40px', position: 'relative', boxShadow: 'var(--shadow-xl)',
-            maxHeight: '90vh', overflowY: 'auto'
-          }}>
-            <button 
-              onClick={() => setModal(null)}
-              style={{ position: 'absolute', top: 16, right: 20, background: 'none', border: 'none', cursor: 'pointer', fontSize: 24, color: 'var(--gray-500)' }}
-            >
-              ✕
-            </button>
-            
-            {modal === 'current' ? (
-              <>
-                <h2 style={{ marginTop: 0, color: 'var(--gray-900)', fontSize: 24, marginBottom: 12 }}>Current System Capabilities</h2>
-                <p style={{ color: 'var(--gray-600)', fontSize: 15, lineHeight: 1.6, marginBottom: 24 }}>
-                  Right now, the Enterprise Assistant acts as a secure, smart search engine for our internal company documents.
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                  <div><strong style={{ color: 'var(--gray-900)', fontSize: 16 }}>🔒 Security First (RBAC)</strong><br/><span style={{ color: 'var(--gray-600)' }}>It identifies who is asking (e.g., HR vs Finance) and completely blocks access to unauthorized documents.</span></div>
-                  <div><strong style={{ color: 'var(--gray-900)', fontSize: 16 }}>⚡ Instant Analysis</strong><br/><span style={{ color: 'var(--gray-600)' }}>Instead of employees manually reading through dozens of PDFs, the system instantly reads all permitted documents and extracts exact answers.</span></div>
-                  <div><strong style={{ color: 'var(--gray-900)', fontSize: 16 }}>📝 Grounded Fact-Checking</strong><br/><span style={{ color: 'var(--gray-600)' }}>It provides a verifiable 'Source' link for every claim it makes, ensuring leadership always knows exactly which policy page an answer came from.</span></div>
-                  <div><strong style={{ color: 'var(--gray-900)', fontSize: 16 }}>🧠 Contextual Memory</strong><br/><span style={{ color: 'var(--gray-600)' }}>It remembers what you asked five minutes ago, so you can have a natural, continuous follow-up conversation without repeating context.</span></div>
-                </div>
-              </>
-            ) : (
-              <>
-                <h2 style={{ marginTop: 0, color: 'var(--primary)', fontSize: 24, marginBottom: 12 }}>Future Enhancements & Vision</h2>
-                <p style={{ color: 'var(--gray-600)', fontSize: 15, lineHeight: 1.6, marginBottom: 24 }}>
-                  While currently a powerful "read-only" search engine, our roadmap evolves this into an active, automated AI Agent.
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                  <div><strong style={{ color: 'var(--gray-900)', fontSize: 16 }}>🚀 Taking Action (Agent Mode)</strong><br/><span style={{ color: 'var(--gray-600)' }}>Instead of just explaining the vacation policy, the assistant will automatically open HR software APIs and submit the time-off request on your behalf.</span></div>
-                  <div><strong style={{ color: 'var(--gray-900)', fontSize: 16 }}>📊 Excel & Data Crunching</strong><br/><span style={{ color: 'var(--gray-600)' }}>Upgrading the vector-engine to process complex tabular (Excel) sheets, allowing executives to ask <em>"What was our total quarterly spend?"</em> and get instant mathematical breakdowns.</span></div>
-                  <div><strong style={{ color: 'var(--gray-900)', fontSize: 16 }}>✉️ Automated Reporting</strong><br/><span style={{ color: 'var(--gray-600)' }}>The system will proactively gather weekly metrics from different departments and draft summary emails or reports for leadership review automatically.</span></div>
-                  <div><strong style={{ color: 'var(--gray-900)', fontSize: 16 }}>📱 Voice & Mobile Ecosystem</strong><br/><span style={{ color: 'var(--gray-600)' }}>Expanding the tool into a secured mobile app interface so executives and employees can ask questions via voice while commuting or away from their desk.</span></div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </header>
   );
 }
