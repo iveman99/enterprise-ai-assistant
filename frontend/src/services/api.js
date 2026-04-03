@@ -6,7 +6,7 @@
 
 import axios from 'axios';
 
-const BASE_URL = 'https://quintin-jointured-kale.ngrok-free.dev/api';
+const BASE_URL = "https://quintin-jointured-kale.ngrok-free.dev/api";
 
 const api = axios.create({
   baseURL: BASE_URL,

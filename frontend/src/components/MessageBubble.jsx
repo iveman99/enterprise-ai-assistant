@@ -175,13 +175,15 @@ export default function MessageBubble({ message, isLatest }) {
           <CopyButton text={message.content} />
         )}
 
-        {/* ✅ FIXED Source Cards Logic */}
+        {/* ✅ FINAL FIX — Source Cards Logic */}
         {!isUser &&
           typingDone &&
           message.sources &&
           message.sources.length > 0 &&
           !message.content.includes("I could not find") &&
-          !message.content.includes("I am your Enterprise AI") && (
+          !message.content.includes("Hello! 👋") &&
+          !message.content.includes("document access summary") &&
+          !message.content.includes("I'm your Enterprise AI") && (
             <div style={{ marginTop: 8 }}>
               <SourceCards sources={message.sources} />
             </div>
