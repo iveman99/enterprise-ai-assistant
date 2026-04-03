@@ -159,7 +159,7 @@ export default function App() {
 
       <Header currentRole={role} onRoleChange={handleRoleChange} />
 
-      <div style={{
+      <div className="app-body" style={{
         display:   'flex',
         flex:      1,
         marginTop: 'var(--header-height)',
@@ -181,7 +181,7 @@ export default function App() {
         }}>
 
           {/* Messages */}
-          <div style={{
+          <div className="message-padding" style={{
             flex:      1,
             overflowY: 'auto',
             padding:   '24px'

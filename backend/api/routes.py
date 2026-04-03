@@ -1,3 +1,4 @@
+
 from fastapi.responses import FileResponse, StreamingResponse
 from pathlib import Path
 import json
@@ -156,7 +157,7 @@ async def stream_answer(request: QueryRequest):
             print(f"🎯 Stream intent: {intent}")
 
             # ── HANDLE SIMPLE INTENTS ─────────────
-            if intent in ("GREETING", "SYSTEM", "OUT_OF_SCOPE"):
+            if intent in ("GREETING", "SYSTEM", "OUT_OF_SCOPE", "ACKNOWLEDGMENT"):
 
                 if intent == "GREETING":
                     result = rag_engine._handle_greeting(
@@ -164,6 +165,10 @@ async def stream_answer(request: QueryRequest):
                     )
                 elif intent == "SYSTEM":
                     result = rag_engine._handle_system(
+                        request.role, request.question
+                    )
+                elif intent == "ACKNOWLEDGMENT":
+                    result = rag_engine._handle_acknowledgment(
                         request.role, request.question
                     )
                 else:

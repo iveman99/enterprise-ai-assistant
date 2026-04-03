@@ -16,6 +16,7 @@
 # ─────────────────────────────────────────────────────────
 
 import json
+import random
 from groq import Groq
 from retrieval.retriever import DocumentRetriever, ROLE_ACCESS_MAP
 from core.config import settings
@@ -40,7 +41,7 @@ def build_classifier_prompt(question: str, role: str,
                              conversation_history: list) -> str:
     """
     Builds the prompt for intent classification.
-    Returns one of: GREETING, SYSTEM, DOCUMENT, OUT_OF_SCOPE
+    Returns one of: GREETING, ACKNOWLEDGMENT, SYSTEM, DOCUMENT, SUMMARIZE, OUT_OF_SCOPE
     """
     history_text = ""
     if conversation_history:
@@ -63,33 +64,28 @@ Current question: "{question}"
 Classify this question into EXACTLY ONE of these intents:
 
 GREETING — casual greetings, small talk, social questions
-  Examples: "hi", "hello", "how are you", "good morning",
-  "how r u", "hey there", "what's up", "sup"
+  Examples: "hi", "hello", "how are you", "good morning"
 
-SYSTEM — questions about the AI system itself, its capabilities,
-  what documents it has, how many files, what departments,
-  who built it, what it can do, how it works
-  Examples: "how many documents do you have", "who built you",
-  "what can you do", "what departments can I access",
-  "how many files", "tell me about yourself",
-  "what all can you help me with", "how does this work"
+ACKNOWLEDGMENT — simple expressions of thanks, agreement, confirmation, or farewells
+  Examples: "thanks", "ok that cool", "thank you so much", "awesome", "great", "bye", "see you later", "i will come back"
 
-DOCUMENT — questions that need information from company documents.
-  This includes follow-up questions that refer to previous answers.
-  Examples: "what is the leave policy", "how does budget approval work",
-  "tell me more about that", "explain this further",
-  "what are the IT security rules", "give me details"
+SYSTEM — questions about the AI system itself, its capabilities or stats
+  Examples: "how many documents do you have", "who built you", "what can you do"
+
+DOCUMENT — questions that need information from company documents or follow-ups.
+  Examples: "what is the leave policy", "how does budget approval work", "tell me more"
+
+SUMMARIZE — explicit requests to summarize all or multiple documents.
+  Examples: "summarize all 8 HR documents", "give me a summary of everything"
 
 OUT_OF_SCOPE — questions completely unrelated to company documents
-  or the AI system. Political figures, general knowledge,
-  personal advice, news, sports, entertainment, etc.
-  Examples: "who is modi", "what is bitcoin", "tell me a joke",
-  "what is the weather", "who won the match"
+  Examples: "who is modi", "what is bitcoin", "tell me a joke"
 
 IMPORTANT RULES:
-- If the question is a follow-up to a previous document answer
-  (like "tell me more", "explain further", "give details"),
-  classify as DOCUMENT
+- If the question is an acknowledgment ("thanks"), farewell ("bye/brb"), or greeting ("hi/hello"), STRICTLY choose ACKNOWLEDGMENT or GREETING, completely ignoring the conversation history.
+- If the question asks to make, write, generate, or create a file (e.g. "make a word doc"), choose OUT_OF_SCOPE.
+- If the question is a request for a broad summary of many documents, choose SUMMARIZE.
+- If the question is a follow-up to a previous document answer, choose DOCUMENT.
 - If unsure between DOCUMENT and OUT_OF_SCOPE, choose DOCUMENT
 - Respond with ONLY the intent word — nothing else
 
@@ -120,12 +116,13 @@ The current user is a {role} with access to: {dept_list} documents.
 
 RULES:
 1. Answer ONLY using the provided document context
-2. Always cite sources: mention the document name
+2. Always cite sources: strictly use the document names provided in [Source X: <filename>].
 3. Be professional, clear and concise
 4. If the context doesn't fully answer the question, say so honestly
-5. Never make up information not in the documents
-6. Use conversation history to understand follow-up questions
-7. Format answers clearly — use bullet points for lists
+5. CRITICAL: NEVER hallucinate document names. If a document name is not in the context, do not mention it.
+6. ABSOLUTELY NO CONVERSATIONAL FILLER. DO NOT start with "Great question", "Happy to help", or "Here is the answer". You are a strict corporate databank. Output the direct answer immediately.
+7. Use conversation history to understand follow-up questions
+8. Format answers clearly — use bullet points for lists
 
 You can help this user with:
 - {suggestion_text}"""
@@ -181,15 +178,23 @@ class RAGEngine:
         if intent == "GREETING":
             return self._handle_greeting(role, question)
 
+        elif intent == "ACKNOWLEDGMENT":
+            return self._handle_acknowledgment(role, question)
+
         elif intent == "SYSTEM":
             return self._handle_system(role, question)
 
         elif intent == "OUT_OF_SCOPE":
             return self._handle_out_of_scope(role, question)
 
+        elif intent == "SUMMARIZE":
+            return self._handle_document(
+                question, role, n_chunks=15, conversation_history=conversation_history, intent="SUMMARIZE"
+            )
+
         else:  # DOCUMENT — default
             return self._handle_document(
-                question, role, n_chunks, conversation_history
+                question, role, n_chunks, conversation_history, intent="DOCUMENT"
             )
 
 
@@ -220,7 +225,7 @@ class RAGEngine:
 
             # Validate — only accept known intents
             valid_intents = {
-                "GREETING", "SYSTEM", "DOCUMENT", "OUT_OF_SCOPE"
+                "GREETING", "ACKNOWLEDGMENT", "SYSTEM", "DOCUMENT", "SUMMARIZE", "OUT_OF_SCOPE"
             }
             if intent not in valid_intents:
                 # Default to DOCUMENT if unclear
@@ -257,13 +262,13 @@ class RAGEngine:
         example_text = examples[0] if examples else "company policies"
 
         answer = (
-            f"Hello! 👋 I'm your Enterprise AI Knowledge Assistant.\n\n"
-            f"As a **{role}**, I can help you instantly find "
+            f"I'm doing great, thanks for asking! 😊 I'm your Enterprise AI Knowledge Assistant.\n\n"
+            f"As a **{role}**, I'm here and ready to help you instantly find "
             f"information from your **{dept_list}** documents — "
             f"no more searching through PDFs manually.\n\n"
             f"Try asking me something like:\n"
             f"*\"What is the {example_text}?\"*\n\n"
-            f"What would you like to know?"
+            f"What do you need help with today?"
         )
 
         return {
@@ -312,22 +317,15 @@ class RAGEngine:
 
         if is_identity:
             answer = (
-                f"I'm the **Enterprise AI Knowledge Assistant** — "
-                f"an intelligent document search system built for "
-                f"your organization.\n\n"
+                f"I'm your Enterprise AI Knowledge Assistant! I was built to help you navigate and find answers instantly from your organization's internal documents.\n\n"
                 f"**What I do:**\n"
-                f"- Search {TOTAL_DOCUMENTS} company documents "
-                f"instantly using AI\n"
+                f"- Search {TOTAL_DOCUMENTS} company documents instantly using AI\n"
                 f"- Understand questions in plain English\n"
                 f"- Provide grounded answers with source citations\n"
                 f"- Respect role-based access control\n"
                 f"- Remember conversation context\n\n"
-                f"**Tech stack:** Python, FastAPI, ChromaDB, "
-                f"Groq LLM, React\n\n"
-                f"**Your access ({role}):** {dept_list} — "
-                f"{accessible_docs} documents, "
-                f"~{accessible_chunks} searchable chunks\n\n"
-                f"What would you like to know?"
+                f"**Your access ({role}):** {dept_list} (I'm currently searching {accessible_docs} documents or ~{accessible_chunks} snippets for you).\n\n"
+                f"How can I help you today?"
             )
 
         elif is_capability:
@@ -428,15 +426,24 @@ class RAGEngine:
 
         suggestion_text = ", ".join(suggestions[:3])
 
-        answer = (
-            f"I'm only able to answer questions based on your "
-            f"company's internal documents.\n\n"
-            f"As a **{role}**, I have access to your "
-            f"**{dept_list}** documents. Try asking me about "
-            f"{suggestion_text}, or any other topic covered "
-            f"in your department documents.\n\n"
-            f"What would you like to know?"
-        )
+        is_create_request = any(w in question.lower() for w in ["make a", "create a", "write a", "word doc", "generate a"])
+
+        if is_create_request:
+            answer = (
+                f"I am a chat assistant designed only to search and retrieve information from your existing company documents. "
+                f"I cannot generate, create, or download new files (like Word documents) for you.\n\n"
+                f"However, I can extract text from the policies for you to copy and paste! What would you like to know?"
+            )
+        else:
+            answer = (
+                f"I'm only able to answer questions based on your "
+                f"company's internal documents.\n\n"
+                f"As a **{role}**, I have access to your "
+                f"**{dept_list}** documents. Try asking me about "
+                f"{suggestion_text}, or any other topic covered "
+                f"in your department documents.\n\n"
+                f"What would you like to know?"
+            )
 
         return {
             "answer":      answer,
@@ -447,27 +454,97 @@ class RAGEngine:
             "intent":      "OUT_OF_SCOPE"
         }
 
+    # ── Handler: ACKNOWLEDGMENT ───────────────────────────
+    def _handle_acknowledgment(self, role: str, question: str) -> dict:
+        """
+        Handles simple thanks, 'ok that cool', or farewells without triggering retrieval.
+        """
+        responses = [
+            "Sounds good! I'll be right here whenever you need me.",
+            "You're very welcome! Let me know if anything else comes up.",
+            "Glad I could help! I'm here when you're ready for more questions.",
+            "No problem at all! Take your time, I'm always here."
+        ]
+        
+        return {
+            "answer":      random.choice(responses),
+            "sources":     [],
+            "role":        role,
+            "chunks_used": 0,
+            "question":    question,
+            "intent":      "ACKNOWLEDGMENT"
+        }
 
-    # ── Handler: DOCUMENT ─────────────────────────────────
+    # ── Helper: Query Contextualization ───────────────────
+    def _contextualize_query(self, question: str, conversation_history: list) -> str:
+        """
+        Takes a potentially vague follow-up question ("give me 5 bullet points")
+        and uses history to rewrite it into a standalone query for better retrieval.
+        """
+        if not conversation_history:
+            return question
+            
+        recent_history = conversation_history[-4:]
+        history_text = "\n".join([
+            f"{m['role'] if isinstance(m, dict) else m.role}: "
+            f"{m['content'] if isinstance(m, dict) else m.content}"
+            for m in recent_history
+        ])
+        
+        prompt = f"""Given the following conversation history, rewrite the user's latest question into a standalone query that can be understood without the conversation history. Do NOT answer the question, just rewrite it. If it is already standalone, return it as is. Do not include any filler words, just the rewritten query.
+
+Conversation History:
+{history_text}
+
+Latest Question: {question}
+
+Standalone Query:"""
+
+        try:
+            response = self.groq_client.chat.completions.create(
+                model=       self.model,
+                messages=    [{"role": "user", "content": prompt}],
+                temperature= 0,
+                max_tokens=  100
+            )
+            rewritten_query = response.choices[0].message.content.strip()
+            # Remove any quotes if the LLM added them
+            if rewritten_query.startswith('"') and rewritten_query.endswith('"'):
+                rewritten_query = rewritten_query[1:-1]
+            return rewritten_query
+        except Exception as e:
+            print(f"⚠️ Contextualize error: {e}")
+            return question
+
+
+    # ── Handler: DOCUMENT/SUMMARIZE ───────────────────────
     def _handle_document(
         self,
         question:             str,
         role:                 str,
         n_chunks:             int,
-        conversation_history: list
+        conversation_history: list,
+        intent:               str = "DOCUMENT"
     ) -> dict:
         """
         Full RAG pipeline:
-        1. Retrieve relevant chunks (RBAC filtered)
-        2. Check confidence (relevance scores)
-        3. Build prompt with context + history
-        4. Generate grounded answer via Groq
-        5. Return answer + citations
+        1. Contextualize query
+        2. Retrieve relevant chunks (RBAC filtered)
+        3. Check confidence (relevance scores)
+        4. Build prompt with context + history
+        5. Generate grounded answer via Groq
+        6. Apply programmed praise
+        7. Return answer + citations
         """
 
-        # Step 1 — Retrieve
+        # Step 1 — Contextualize Query
+        search_query = self._contextualize_query(question, conversation_history)
+        if search_query != question:
+            print(f"🔄 Rewritten Query: {search_query}")
+
+        # Step 2 — Retrieve
         chunks = self.retriever.search_by_role(
-            query=    question,
+            query=    search_query,
             role=     role,
             n_results=n_chunks
         )
@@ -486,15 +563,15 @@ class RAGEngine:
                 "role":        role,
                 "chunks_used": 0,
                 "question":    question,
-                "intent":      "DOCUMENT"
+                "intent":      intent
             }
 
-        # Step 2 — Confidence check
+        # Step 3 — Confidence check
         # If all chunks score below 25%, we're not confident
         top_score    = chunks[0]["score"]
         low_confidence = top_score < 0.25
 
-        # Step 3 — Build context
+        # Step 4 — Build context
         context_parts = []
         for i, chunk in enumerate(chunks, 1):
             context_parts.append(
@@ -505,7 +582,7 @@ class RAGEngine:
             )
         context = "\n\n".join(context_parts)
 
-        # Step 4 — Build messages with history
+        # Step 5 — Build messages with history
         messages = [
             {
                 "role":    "system",
@@ -549,10 +626,10 @@ class RAGEngine:
             )
         })
 
-        # Step 5 — Generate answer
+        # Step 6 — Generate answer
         print(f"\n🤖 Sending to Groq ({self.model})...")
         print(f"   Top chunk score: {round(top_score*100)}% "
-              f"({'low confidence' if low_confidence else 'good'})")
+               f"({'low confidence' if low_confidence else 'good'})")
 
         response = self.groq_client.chat.completions.create(
             model=       self.model,
@@ -563,7 +640,18 @@ class RAGEngine:
 
         answer_text = response.choices[0].message.content
 
-        # Step 6 — Build citations (deduplicated)
+        # Apply programmatic praise
+        if intent == "DOCUMENT" and not low_confidence:
+            praises = [
+                "Great question! ",
+                "Excellent question. ",
+                "Happy to help with that! ",
+                "That's a very good question. ",
+                "I've got the details for you! "
+            ]
+            answer_text = f"**{random.choice(praises)}**\n\n{answer_text}"
+
+        # Step 7 — Build citations (deduplicated)
         seen    = set()
         sources = []
         for chunk in chunks:
@@ -585,5 +673,5 @@ class RAGEngine:
             "role":        role,
             "chunks_used": len(chunks),
             "question":    question,
-            "intent":      "DOCUMENT"
+            "intent":      intent
         }

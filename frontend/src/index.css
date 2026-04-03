@@ -61,3 +61,38 @@ body {
 ::-webkit-scrollbar-track  { background: var(--gray-100); }
 ::-webkit-scrollbar-thumb  { background: var(--gray-300); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+  .app-body {
+    flex-direction: column !important;
+  }
+  
+  .sidebar-container {
+    width: 100% !important;
+    height: 150px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--gray-200) !important;
+    padding: 10px 0 !important;
+  }
+  
+  .header-container {
+    padding: 0 12px !important;
+  }
+  
+  .header-title-sub {
+    display: none !important;
+  }
+  
+  .role-label {
+    display: none !important;
+  }
+  
+  .message-padding {
+    padding: 16px 12px !important;
+  }
+
+  .header-nav-buttons {
+    display: none !important;
+  }
+}

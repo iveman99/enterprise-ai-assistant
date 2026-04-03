@@ -1,0 +1,77 @@
+🚀 Starting Personality & Intent Final Verification...
+============================================================
+
+🧪 TEST 1: 1. Thanks with strong history (Checking Acknowledgment ignore history)
+👤 Role: HR
+❓ Question: thanks
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 0
+
+🤖 LLM Answer:
+No problem at all! Take your time, I'm always here.
+------------------------------------------------------------
+
+🧪 TEST 2: 2. Friendly Greeting Check
+👤 Role: Finance
+❓ Question: how are u
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 0
+
+🤖 LLM Answer:
+I'm doing great, thanks for asking! 😊 I'm your Enterprise AI Knowledge Assistant.
+
+As a **Finance**, I'm here and ready to help you instantly find information from your **Finance** documents — no more searching through PDFs manually.
+
+Try asking me something like:
+*"What is the budget approval processes?"*
+
+What do you need help with today?
+------------------------------------------------------------
+
+🧪 TEST 3: 3. Identity/System Response Check
+👤 Role: Operations
+❓ Question: who build you
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 0
+
+🤖 LLM Answer:
+I'm your Enterprise AI Knowledge Assistant! I was built to help you navigate and find answers instantly from your organization's internal documents.
+
+**What I do:**
+- Search 42 company documents instantly using AI
+- Understand questions in plain English
+- Provide grounded answers with source citations
+- Respect role-based access control
+- Remember conversation context
+
+**Your access (Operations):** Operations (I'm currently searching 9 documents or ~256 snippets for you).
+
+How can I help you today?
+------------------------------------------------------------
+
+🧪 TEST 4: 4. File Creation Out-of-Scope Bypass Check
+👤 Role: Executive
+❓ Question: can you make word doc for me
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 0
+
+🤖 LLM Answer:
+I am a chat assistant designed only to search and retrieve information from your existing company documents. I cannot generate, create, or download new files (like Word documents) for you.
+
+However, I can extract text from the policies for you to copy and paste! What would you like to know?
+------------------------------------------------------------
+
+🧪 TEST 5: 5. Farewell / Off-ramp Check
+👤 Role: Legal
+❓ Question: i will come back in some time
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 0
+
+🤖 LLM Answer:
+Sounds good! I'll be right here whenever you need me.
+------------------------------------------------------------

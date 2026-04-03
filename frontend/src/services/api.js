@@ -22,7 +22,7 @@ export const queryDocuments = async (
   question,
   role,
   conversationHistory = [],
-  nResults = 5
+  nResults = 8
 ) => {
   const response = await api.post('/query', {
     question,
@@ -72,7 +72,7 @@ export const streamQuery = async (
     body: JSON.stringify({
       question,
       role,
-      n_results:            5,
+      n_results:            8,
       conversation_history: conversationHistory
     })
   });

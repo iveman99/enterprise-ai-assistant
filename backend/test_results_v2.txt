@@ -1,0 +1,74 @@
+🚀 Starting Personality & Intent Stress Test...
+============================================================
+
+🧪 TEST 1: 1. Thanks with strong history (Checking Acknowledgment)
+👤 Role: HR
+❓ Question: thanks
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 0
+
+🤖 LLM Answer:
+Glad I could help! I'm here if you have more questions.
+------------------------------------------------------------
+
+🧪 TEST 2: 2. Friendly Greeting Check
+👤 Role: Finance
+❓ Question: how are u
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 0
+
+🤖 LLM Answer:
+Hello! 👋 I'm your Enterprise AI Knowledge Assistant.
+
+As a **Finance**, I can help you instantly find information from your **Finance** documents — no more searching through PDFs manually.
+
+Try asking me something like:
+*"What is the budget approval processes?"*
+
+What would you like to know?
+------------------------------------------------------------
+
+🧪 TEST 3: 3. Identity/System Response Check
+👤 Role: Operations
+❓ Question: who build you
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 0
+
+🤖 LLM Answer:
+I'm the **Enterprise AI Knowledge Assistant** — an intelligent document search system built for your organization.
+
+**What I do:**
+- Search 42 company documents instantly using AI
+- Understand questions in plain English
+- Provide grounded answers with source citations
+- Respect role-based access control
+- Remember conversation context
+
+**Tech stack:** Python, FastAPI, ChromaDB, Groq LLM, React
+
+**Your access (Operations):** Operations — 9 documents, ~256 searchable chunks
+
+What would you like to know?
+------------------------------------------------------------
+
+🧪 TEST 4: 4. File Creation Out-of-Scope Bypass Check
+👤 Role: Executive
+❓ Question: can you make word doc for me
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 5
+
+🤖 LLM Answer:
+**Happy to help with that! **
+
+Unfortunately, the provided documents do not explicitly mention creating a Word document. However, they do discuss generating documents using AI, specifically Standard Operating Procedures (SOPs) and customized documents based on user input.
+
+According to [Source 4: AI.pdf], the system described in the article uses recent advances in artificial intelligence to assist in generating procedures, including customized documents based on user input. Users can select which sections to include, such as calibration methods or waste disposal protocols (Source 4, lines 20-22).
+
+Additionally, [Source 2: AI.pdf] mentions that the system helps maintain accuracy and relevance in automated text generation, which could potentially be used to generate a Word document (Source 2, lines 23-25).
+
+However, it is essential to note that the documents do not explicitly mention creating a Word document, and the focus is primarily on generating documents in a standardized format, such as Document objects (Source 3, lines 194-196).
+------------------------------------------------------------

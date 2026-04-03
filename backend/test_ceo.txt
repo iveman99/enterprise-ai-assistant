@@ -1,0 +1,114 @@
+🚀 Starting CEO-Level Verification...
+============================================================
+
+🧪 TEST 1: 1. Multi-Department Strategic Query
+👤 Role: Executive
+❓ Question: Summarize our IT security password policies and HR exit policies.
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 5
+
+🤖 LLM Answer:
+**Great question! **
+
+**IT Security Password Policies:**
+
+* All computer users must change passwords every 6 months (Source 1: IT.pdf)
+* The IT Program reserves the right to have users change their passwords at any time if the system has been compromised (Source 1: IT.pdf)
+* The IT Program monitors and updates all systems passwords as appropriate for each individual user (Source 1: IT.pdf)
+* Enforce a strong password policy and enforce periodic password changes (Source 5: Responding to compromise of systems .pdf)
+
+**HR Exit Policies:**
+
+There are no relevant HR exit policies mentioned in the provided documents.
+------------------------------------------------------------
+
+🧪 TEST 2: 2. Global Summarization Request
+👤 Role: Executive
+❓ Question: Summarize all company policies for me.
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 15
+
+🤖 LLM Answer:
+Based on the provided documents, here is a summary of the company policies:
+
+**Attendance Policy:**
+- Employees are expected to be punctual and complete required hours (Source: Attendance Policy PDF.pdf)
+- This policy applies to all personnel, including permanent, probationary, and contract staff (Source: Attendance Policy PDF.pdf)
+
+**Dress Code Policy:**
+- Employees are expected to wear formal or business casual attire on working days and at company events (Source: Dress Code Policy.pdf)
+
+**Overtime Policy:**
+- The policy aims to provide accurate and timely compensation to employees for overtime (Source: Company Overtime Policy In PDF Format.pdf)
+- It is designed to prevent misuse of overtime and meet all labor laws and regulations concerning overtime work and compensation (Source: Company Overtime Policy In PDF Format.pdf)
+
+**Performance Management Policy:**
+- The policy aims to ensure that employees know what is expected of them and receive feedback to improve and develop their performance (Source: Performance Management in Organizations.pdf)
+- The policy will be reviewed and improved as necessary (Source: Performance Management in Organizations.pdf)
+
+**Risk Management Policy:**
+- The policy aims to identify, assess, and mitigate risks to the organization (Source: Risk managemnet .pdf)
+- It involves comprehensive understanding of all current risk management activities, including active insurance coverages and risk reduction programs (Source: Risk managemnet .pdf)
+
+**Standard Operating Procedures (SOPs):**
+- SOPs implement College policies and do not create new or alter existing Board Policies or APs (Source: Administrative Skills and Responsibilities.pdf)
+- SOPs may include instructions, manuals, checklists, and other guidelines (Source: Administrative Skills and Responsibilities.pdf)
+
+**Fraud Reporting Policy:**
+- The policy outlines the procedure for reporting and investigating fraud (Source: Fraud & Misrepresentation.pdf)
+
+**Cloud Security Management Procedure:**
+- The procedure outlines the responsibilities and procedures for managing cloud security (Source: Cloud Security Management Procedure.pdf)
+
+**Budget and Financial Management Policy:**
+- The policy ensures that budgets are aligned with internal controls, policies, and statutory compliances (Source: coporate finance.pdf, Budget SOP.pdf)
+
+**Development and Revision of Standard Operating Procedures (SOPs):**
+- SOPs will be reviewed and revised every five years (Source: Administrative Skills and Responsibilities.pdf)
+- The policy will be reviewed and improved as necessary (Source: Administrative Skills and Responsibilities.pdf)
+------------------------------------------------------------
+
+🧪 TEST 3: 3. Executive 'Write this for me' check
+👤 Role: Executive
+❓ Question: Write an email draft to the board about the budget.
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 5
+
+🤖 LLM Answer:
+**Great question! **
+
+Subject: Budget Approval and Implementation
+
+Dear Management Board,
+
+I am writing to inform you that the budget has been approved with/without modifications as deemed necessary, as per the standard operating procedure (Source 1: Budget SOP.pdf, Source 2: corporate finance.pdf). The approved budget has been shared with the Director and F&A Department of the respective institutes for implementation (Source 1: Budget SOP.pdf, Source 2: corporate finance.pdf).
+
+As per the budget SOP, any capital expenditure budgeted in any activity shall be in consultation with the respective departments, including Admin, IT, library, and the team involved (Source 3: Budget SOP.pdf, Source 4: corporate finance.pdf). The F&A Department shall keep track of the variance from Internal Budget and current revenue and expense (Source 3: Budget SOP.pdf, Source 4: corporate finance.pdf).
+
+The budget shall be reviewed and recommended by the F&A Committee and approved by the Management Board before implementation (Source 5: Budget SOP.pdf). A budget format duly approved by the Manager(FA&A),IIHMR Society office shall be shared with the F&A departments of respective campuses, which will include the list of revenue streams and the details of proportion of common expenses (Source 5: Budget SOP.pdf).
+
+Please find attached a copy of the approved budget for your reference.
+
+Thank you for your approval and support.
+
+Best regards,
+[Your Name]
+------------------------------------------------------------
+
+🧪 TEST 4: 4. Impatient Frustration Check
+👤 Role: Executive
+❓ Question: this is useless what do you actually do
+✅ Success (HTTP 200)
+   Intent      : UNKNOWN
+   Chunks Used : 0
+
+🤖 LLM Answer:
+I'm only able to answer questions based on your company's internal documents.
+
+As a **Executive**, I have access to your **HR, Finance, IT, Legal, Operations** documents. Try asking me about HR policies, Finance procedures, IT guidelines, or any other topic covered in your department documents.
+
+What would you like to know?
+------------------------------------------------------------
