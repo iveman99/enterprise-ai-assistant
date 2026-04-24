@@ -43,7 +43,7 @@ Enterprise AI Knowledge Assistant is a **Proof of Concept** built for organizati
 
 ## 🌐 Live Demo
 ```
-🔗 https://cryptoinfolinepoc.vercel.app
+🔗 https://privategpt-iveman.vercel.app/
 ```
 
 **Try these questions after selecting a role:**
