@@ -10,7 +10,7 @@
 [![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 [![Groq](https://img.shields.io/badge/Groq-F55036?style=for-the-badge&logo=groq&logoColor=white)](https://groq.com/)
 
-**[🌐 Live Demo](https://cryptoinfolinepoc.vercel.app)** • **[📖 API Docs](https://cryptoinfolinepoc.vercel.app/docs)** • **[📬 Contact Developer](#)**
+**[🌐 Live Demo](https://privategpt-iveman.vercel.app)** • **[📖 API Docs](https://cryptoinfolinepoc.vercel.app/docs)** • **[📬 Contact Developer](#)**
 
 ![Enterprise AI Demo](https://img.shields.io/badge/Status-Live%20POC-brightgreen?style=for-the-badge)
 
